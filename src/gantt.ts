@@ -821,6 +821,7 @@ module powerbi.extensibility.visual {
             this.renderTasks(groupedTasks);
 
             this.createMilestoneLine(groupedTasks);
+            this.createMilestoneLine(groupedTasks, "Hi", new Date(2017, 1, 1).getTime());
             this.updateTaskLabels(groupedTasks, this.viewModel.settings.taskLabels.width);
             this.updateElementsPositions(this.viewport, this.margin);
 
