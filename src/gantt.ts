@@ -197,6 +197,7 @@ module powerbi.extensibility.visual {
         export const ClassName: ClassAndSelector = createClassAndSelector("gantt");
         export const Chart: ClassAndSelector = createClassAndSelector("chart");
         export const ChartLine: ClassAndSelector = createClassAndSelector("chart-line");
+        export const ConnectionLines: ClassAndSelector = createClassAndSelector("connection-line");
         export const Body: ClassAndSelector = createClassAndSelector("gantt-body");
         export const AxisGroup: ClassAndSelector = createClassAndSelector("axis");
         export const Domain: ClassAndSelector = createClassAndSelector("domain");
@@ -401,6 +402,7 @@ module powerbi.extensibility.visual {
             this.axisGroup.selectAll(Selectors.Domain.selector).remove();
             this.lineGroup.selectAll(Selectors.TaskLabels.selector).remove();
             this.chartGroup.selectAll(Selectors.ChartLine.selector).remove();
+            this.chartGroup.selectAll(Selectors.ConnectionLines.selector).remove();
             this.chartGroup.selectAll(Selectors.TaskGroup.selector).remove();
             this.chartGroup.selectAll(Selectors.SingleTask.selector).remove();
         }
@@ -620,33 +622,33 @@ module powerbi.extensibility.visual {
             let label: string = "";
 
             const days: number = Math.floor(duration / 24);
-            label += days ? `${days} Days ` : ``;
+            label += days ? `${days} D\u00e4\u00e4g ` : ``;
             if (durationUnit === "day") {
-                return `${duration} Days `;
+                return `${duration} D\u00e4\u00e4g `;
             }
 
             const hours: number = duration - (days * 24);
-            label += hours ? `${hours} Hours ` : ``;
+            label += hours ? `${hours} Stunde ` : ``;
             if (durationUnit === "hour") {
                 return duration >= 24
                     ? label
-                    : `${duration} Hours`;
+                    : `${duration} Stunde`;
             }
 
             const minutes: number = duration - ((days * 24) + (hours * 60));
-            label += minutes ? `${minutes} Minutes ` : ``;
+            label += minutes ? `${minutes} Minut\u00e4 ` : ``;
             if (durationUnit === "minute") {
                 return duration >= 60
                     ? label
-                    : `${duration} Minutes `;
+                    : `${duration} Minut\u00e4 `;
             }
 
             const seconds: number = duration - (days * 24 + hours * 60 + minutes * 60);
-            label += seconds ? `${seconds} Seconds ` : ``;
+            label += seconds ? `${seconds} Second\u00e4 ` : ``;
             if (durationUnit === "second") {
                 return duration >= 60
                     ? label
-                    : `${duration} Seconds `;
+                    : `${duration} Second\u00e4 `;
             }
         }
 
@@ -819,9 +821,10 @@ module powerbi.extensibility.visual {
 
             this.renderAxis(xAxisProperties);
             this.renderTasks(groupedTasks);
-
-            this.createMilestoneLine(groupedTasks);
-            this.createMilestoneLine(groupedTasks, "Hi", new Date(2017, 1, 1).getTime());
+            
+            this.createMilestoneLine(groupedTasks, "hi", new Date(2016,1,1).getTime());
+            this.createTestLine(groupedTasks[2], groupedTasks[4]);
+            
             this.updateTaskLabels(groupedTasks, this.viewModel.settings.taskLabels.width);
             this.updateElementsPositions(this.viewport, this.margin);
 
@@ -1161,6 +1164,32 @@ module powerbi.extensibility.visual {
                 .enter()
                 .append("line")
                 .classed(Selectors.ChartLine.class, true);
+
+            chartLineSelection.attr({
+                x1: (line: Line) => line.x1,
+                y1: (line: Line) => line.y1,
+                x2: (line: Line) => line.x2,
+                y2: (line: Line) => line.y2
+            });
+
+            this.renderTooltip(chartLineSelection);
+            chartLineSelection.exit().remove();
+        }
+
+        private createTestLine(task1: GroupedTask, task2: GroupedTask): void {
+            let line: Line[] = [{
+                x1: this.timeScale(task1.tasks[0].end),
+                y1: Gantt.getBarYCoordinate(task1.id)  + Gantt.getBarHeight() / 2,
+                x2: this.timeScale(task2.tasks[0].start),
+                y2: Gantt.getBarYCoordinate(task2.id) +  Gantt.getBarHeight() / 2,
+                tooltipInfo: [<VisualTooltipDataItem>{displayName: "test line", value: "14.78"}]
+            }];
+
+            let chartLineSelection: UpdateSelection<Line> = this.chartGroup.selectAll(Selectors.ConnectionLines.selector).data(line);
+            chartLineSelection
+                .enter()
+                .append("line")
+                .classed(Selectors.ConnectionLines.class, true);
 
             chartLineSelection.attr({
                 x1: (line: Line) => line.x1,
